@@ -15,6 +15,9 @@
 
     const zs_style = document.createElement('style');
     zs_style.innerHTML = `
+        .zs-hidden {
+            display: none;
+        }
         .zs-pixeled {
             border: 3px solid #000000;
             box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.75);
@@ -43,10 +46,14 @@
             background-color: #008f5b;
         }
         .zs-timeout {
-            width: 125px;
-            height: 5px;
-            margin: auto;
-            background: linear-gradient(-90deg, rgb(97, 97, 97) var(--zs_timeout), rgb(16, 173, 241) var(--zs_timeout));
+            position: fixed;
+            left: 50%;
+            margin-left: -90px;
+            bottom: 28px;
+            width: 180px;
+            height: 46px;
+            background: linear-gradient(-90deg, rgb(42, 60, 66) var(--zs_timeout), rgb(87, 111, 118) var(--zs_timeout));
+            z-index: 100;
         }
     `;
     document.head.appendChild(zs_style);
@@ -55,16 +62,16 @@
     let zs_initialized;
     let placeTimeout;
 
-    const zs_version = "0.2";
+    const zs_version = "0.3";
     const zs_startButton = document.createElement('button');
     zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
     document.body.appendChild(zs_startButton)
 
-    const zs_timeout = document.createElement("div");
-    zs_timeout.classList.add("zs-timeout");
-    zs_timeout.style.setProperty("--zs_timeout", "0%");
-    zs_startButton.appendChild(zs_timeout);
+    const zs_timeout = document.createElement('div');
+    zs_timeout.classList.add('zs-pixeled', 'zs-timeout');
+    zs_timeout.style.setProperty('--zs_timeout', '100%');
+    document.body.appendChild(zs_timeout);
 
     // Load Toastify
     await new Promise((resolve, reject) => {
@@ -203,7 +210,7 @@
 
         // Update the percentage
         const maxTimeout = 300000; // 5min
-        const percentage = Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
+        const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
         zs_timeout.style.setProperty("--zs_timeout", `${percentage}%`)
     }, 1)
 
@@ -221,14 +228,21 @@
     zs_success('Zugriff gewährt!');
 
     const zs_getCanvasId = (x, y) => {
-        if (y < 0) {
+        if (y < 0 && x < 500) {
             return 1;
+        } else if (y < 0 && x >= 500) {
+            return 2;
+        } else if (y >= 0 && x < 500) {
+            return 4;
+        } else if (y >= 0 && x >= 500) {
+            return 5;
         }
-        return 4;
+        console.error('Unknown canvas!');
+        return 0;
     }
 
     const zs_getCanvasX = (x, y) => {
-        return x + 500;
+        return (x + 500) % 1000;
     }
 
     const zs_getCanvasY = (x, y) => {
@@ -395,6 +409,7 @@
         zs_running = true;
         zs_startButton.classList.remove('zs-startbutton');
         zs_startButton.classList.add('zs-stopbutton');
+        zs_timeout.classList.remove('zs-hidden');
         if (zs_initialized) {
             zs_requestJob();
         }
@@ -405,6 +420,7 @@
         clearTimeout(placeTimeout);
         zs_startButton.classList.remove('zs-stopbutton');
         zs_startButton.classList.add('zs-startbutton');
+        zs_timeout.classList.add('zs-hidden');
     }
 
     zs_startButton.onclick = () => {
