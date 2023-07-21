@@ -1,6 +1,6 @@
 (async () => {
     // Check for correct page
-    if (!window.location.href.startsWith('https://www.reddit.com/r/place/') || !window.location.href.startsWith('https://new.reddit.com/r/place/')) {
+    if (!window.location.href.startsWith('https://www.reddit.com/r/place/') && !window.location.href.startsWith('https://new.reddit.com/r/place/')) {
         return;
     }
 
