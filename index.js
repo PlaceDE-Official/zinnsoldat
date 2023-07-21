@@ -193,7 +193,7 @@
 
     setInterval(() => {
         const theTimeout = getTimeout(placeTimeout)
-        if (theTimeout == NaN) {
+        if (isNaN(theTimeout)) {
             // Hide it
             zs_timeout.style.opacity = 0;
         }
