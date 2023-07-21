@@ -228,7 +228,7 @@
 
 
     let c2;
-    let tokens = ['PLACE_DE_RdODJlIhcKMPemKQDvHysWhVWVDbWZJfjPWtnQciOKQMYcNAQyOKxWaXPnXoGfepWDbwjWhHMlIFjhfrqgkwkuqfTRE']; // We only have one token
+    let tokens = ['Wololo']; // We only have one token
 
     let placeTimeout;
     const zs_requestJob = () => {
