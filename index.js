@@ -235,6 +235,8 @@
         return zs_getCanvasId(x, y) < 3 ? y + 1000 : y;
     }
 
+    let pixelsPlacedThisSession = 0;
+
     const zs_placePixel = async (x, y, color) => {
         console.log('Trying to place pixel at %s, %s in %s', x, y, color);
         const response = await fetch('https://gql-realtime-2.reddit.com/query', {
@@ -300,7 +302,8 @@
             return null;
         }
         console.log('Did place pixel at %s, %s in %s', x, y, color);
-        zs_success(`Pixel (${x}, ${y}) platziert!`);
+        pixelsPlacedThisSession += 1;
+        zs_success(`Pixel (${x}, ${y}) platziert! (#${pixelsPlacedThisSession})`);
         return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
     }
 
