@@ -236,7 +236,7 @@
     }
 
     const zs_placePixel = async (x, y, color) => {
-        console.log('Placed pixel at %s, %s in %s', x, y, color);
+        console.log('Trying to place pixel at %s, %s in %s', x, y, color);
         const response = await fetch('https://gql-realtime-2.reddit.com/query', {
             method: 'POST',
             body: JSON.stringify({
@@ -290,13 +290,16 @@
         const data = await response.json()
         if (data.errors !== undefined) {
             if (data.errors[0].message === 'Ratelimited') {
+                console.log('Could not place pixel at %s, %s in %s - Ratelimit', x, y, color);
                 zs_warn('Du hast noch Abklingzeit!');
                 return data.errors[0].extensions?.nextAvailablePixelTs;
             }
+            console.log('Could not place pixel at %s, %s in %s - Response error', x, y, color);
             console.error(data.errors);
             zs_error('Fehler beim Platzieren des Pixels');
             return null;
         }
+        console.log('Did place pixel at %s, %s in %s', x, y, color);
         zs_success(`Pixel (${x}, ${y}) platziert!`);
         return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
     }
