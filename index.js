@@ -42,6 +42,12 @@
         .zs-stopbutton:hover {
             background-color: #008f5b;
         }
+        .zs-timeout {
+            width: 125px;
+            height: 5px;
+            margin: auto;
+            background: linear-gradient(-90deg, rgb(97, 97, 97) var(--zs_timeout), rgb(16, 173, 241) var(--zs_timeout));
+        }
     `;
     document.head.appendChild(zs_style);
 
@@ -54,6 +60,11 @@
     zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
     document.body.appendChild(zs_startButton)
+
+    const zs_timeout = document.createElement("div");
+    zs_timeout.classList.add("zs-timeout");
+    zs_timeout.style.setProperty("--zs_timeout", "0%");
+    zs_startButton.appendChild(zs_timeout);
 
     // Load Toastify
     await new Promise((resolve, reject) => {
@@ -152,6 +163,49 @@
     }
 
     zs_info('Einer von uns!');
+
+    // Override setTimeout to allow getting the time left
+    const _setTimeout = setTimeout; 
+    const _clearTimeout = clearTimeout; 
+    const zs_allTimeouts = {};
+    
+    setTimeout = (callback, delay) => {
+        let id = _setTimeout(callback, delay);
+        zs_allTimeouts[id] = Date.now() + delay;
+        return id;
+    };
+
+    clearTimeout = (id) => {
+        _clearTimeout(id);
+        zs_allTimeouts[id] = undefined;
+    }
+    
+    const getTimeout = (id) => {
+        if (zs_allTimeouts[id]) {
+            return Math.max(
+                zs_allTimeouts[id] - Date.now(),
+                0 // Make sure we get no negative values for timeouts that are already done
+            )
+        }
+
+        return NaN;
+    }
+
+    setInterval(() => {
+        const theTimeout = getTimeout(placeTimeout)
+        if (Number.isNaN(theTimeout)) {
+            // Hide it
+            zs_timeout.style.opacity = 0;
+        }
+
+        // Show it
+        zs_timeout.style.opacity = 1;
+
+        // Update the percentage
+        const maxTimeout = 300000; // 5min
+        const percentage = Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
+        zs_timeout.style.setProperty("--zs_timeout", `${percentage}%`)
+    }, 1)
 
     // Retrieve access token
     const zs_getAccessToken = async () => {
