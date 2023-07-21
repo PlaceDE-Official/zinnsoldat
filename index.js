@@ -15,6 +15,9 @@
 
     const zs_style = document.createElement('style');
     zs_style.innerHTML = `
+        .zs-hidden {
+            display: none;
+        }
         .zs-pixeled {
             border: 3px solid #000000;
             box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.75);
@@ -31,22 +34,16 @@
             color: #fff;
         }
         .zs-startbutton {
-            background-color: #FF4500;
+            background: linear-gradient(-90deg, #C03400 var(--zs_timeout), #FF4500 var(--zs_timeout));
         }
         .zs-startbutton:hover {
-            background-color: #e63d00;
+            background: linear-gradient(-90deg, #802300 var(--zs_timeout), #E03D00 var(--zs_timeout));
         }
         .zs-stopbutton {
-            background-color: #00A368;
+            background: linear-gradient(-90deg, #007B4E var(--zs_timeout), #00A368 var(--zs_timeout));
         }
         .zs-stopbutton:hover {
-            background-color: #008f5b;
-        }
-        .zs-timeout {
-            width: 125px;
-            height: 5px;
-            margin: auto;
-            background: linear-gradient(-90deg, rgb(97, 97, 97) var(--zs_timeout), rgb(16, 173, 241) var(--zs_timeout));
+            background: linear-gradient(-90deg, #005234 var(--zs_timeout), #008F5B var(--zs_timeout));
         }
     `;
     document.head.appendChild(zs_style);
@@ -55,16 +52,12 @@
     let zs_initialized;
     let placeTimeout;
 
-    const zs_version = "0.2";
+    const zs_version = "0.4";
     const zs_startButton = document.createElement('button');
     zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
-    document.body.appendChild(zs_startButton)
-
-    const zs_timeout = document.createElement("div");
-    zs_timeout.classList.add("zs-timeout");
-    zs_timeout.style.setProperty("--zs_timeout", "0%");
-    zs_startButton.appendChild(zs_timeout);
+    zs_startButton.style.setProperty('--zs_timeout', '100%');
+    document.body.appendChild(zs_startButton);
 
     // Load Toastify
     await new Promise((resolve, reject) => {
@@ -192,19 +185,15 @@
     }
 
     setInterval(() => {
-        const theTimeout = getTimeout(placeTimeout)
+        let theTimeout = getTimeout(placeTimeout)
         if (Number.isNaN(theTimeout)) {
-            // Hide it
-            zs_timeout.style.opacity = 0;
+            theTimeout = 0;
         }
-
-        // Show it
-        zs_timeout.style.opacity = 1;
 
         // Update the percentage
         const maxTimeout = 300000; // 5min
-        const percentage = Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
-        zs_timeout.style.setProperty("--zs_timeout", `${percentage}%`)
+        const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
+        zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`)
     }, 1)
 
     // Retrieve access token
@@ -221,14 +210,25 @@
     zs_success('Zugriff gewährt!');
 
     const zs_getCanvasId = (x, y) => {
-        if (y < 0) {
+        if (y < 0 && x < -500) {
+            return 0
+        } else if (y < 0 && x < 500 && x >= -500) {
             return 1;
+        } else if (y < 0 && x >= 500) {
+            return 2;
+        } else if (y >= 0 && x < -500) {
+            return 3;
+        } else if (y >= 0 && x < 500 && x >= -500) {
+            return 4;
+        } else if (y >= 0 && x >= 500) {
+            return 5;
         }
-        return 4;
+        console.error('Unknown canvas!');
+        return 0;
     }
 
     const zs_getCanvasX = (x, y) => {
-        return x + 500;
+        return Math.abs((x + 500) % 1000);
     }
 
     const zs_getCanvasY = (x, y) => {
