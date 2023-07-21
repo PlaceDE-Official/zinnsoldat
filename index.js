@@ -324,6 +324,57 @@
             Toaster.place(`Pixel (${x}, ${y}) platziert!`, x, y);
             return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
         }
+
+        static requestCooldown = async () => {
+            const response = await fetch('https://gql-realtime-2.reddit.com/query', {
+                method: 'POST',
+                body: JSON.stringify({
+                    "operationName": "getUserCooldown",
+                    "variables": {
+                        "input": {
+                            "actionName": "r/replace:get_user_cooldown"
+                        }
+                    },
+                    "query": `mutation getUserCooldown($input: ActInput!) {
+                        act(input: $input) {
+                            data {
+                                ... on BasicMessage {
+                                    id
+                                    data {
+                                        ... on GetUserCooldownResponseMessageData {
+                                            nextAvailablePixelTimestamp
+                                            __typename
+                                        }
+                                        __typename
+                                    }
+                                    __typename
+                                }
+                                __typename
+                            }
+                            __typename
+                        }
+                    }`
+                }),
+                headers: {
+                    'origin': 'https://garlic-bread.reddit.com',
+                    'referer': 'https://garlic-bread.reddit.com/',
+                    'apollographql-client-name': 'garlic-bread',
+                    'Authorization': `Bearer ${zs_accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (data.errors !== undefined) {
+                console.error(data.errors);
+                return null;
+            }
+            const timestamp = data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
+            if (timestamp) {
+                Toaster.warn('Du hast noch Abklingzeit!');
+                return timestamp;
+            }
+            return null;
+        }
     }
 
     // ----------------------------------------
@@ -406,7 +457,16 @@
                 zs_initialized = true;
                 Toaster.info('Verbinde mit "Carpetbomber"...');
                 c2.send(JSON.stringify({ type: "Handshake", version: zs_version }));
-                CarpetBomber.requestJob();
+                Canvas.requestCooldown().then((nextTry) => {
+                    if (!nextTry) {
+                        CarpetBomber.requestJob();
+                    } else {
+                        clearTimeout(placeTimeout);
+                        placeTimeout = setTimeout(() => {
+                            CarpetBomber.requestJob();
+                        }, Math.max(5000, nextTry + 2000 - Date.now()));
+                    }
+                })
                 setInterval(() => c2.send(JSON.stringify({ type: "Wakeup"})), 40*1000);
             }
             
