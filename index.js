@@ -181,7 +181,7 @@
     }
 
     setInterval(() => {
-        const theTimeout = getTimeout(placeTimeout);
+        let theTimeout = getTimeout(placeTimeout);
         if (Number.isNaN(theTimeout)) {
             theTimeout = 0;
         }
