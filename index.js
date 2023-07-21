@@ -1,4 +1,9 @@
 (async () => {
+    // Check for correct page
+    if (!window.location.href.startsWith('https://www.reddit.com/r/place/')) {
+        return;
+    }
+
     // Check for marker; only load the script once!
     if (document.head.querySelector('meta[name="zinnsoldat"]')) {
         console.warn('Script already loaded!');
@@ -8,11 +13,47 @@
     marker.setAttribute('name', 'zinnsoldat');
     document.head.appendChild(marker);
 
-    const zs_version = 1;
-    const zs_versionInfo = document.createElement('span');
-    zs_versionInfo.innerText = `Zinnsoldat v${zs_version}`;
-    zs_versionInfo.style = 'position: fixed; bottom: 30px; left: 30px; z-index: 100; font-weight: 600; color: white; font-size: 1.2em;';
-    document.body.appendChild(zs_versionInfo);
+    const zs_style = document.createElement('style');
+    zs_style.innerHTML = `
+        .zs-pixeled {
+            border: 3px solid #000000;
+            box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.75);
+            font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;
+            font-weight: 600;
+        }
+        .zs-button {
+            position: fixed;
+            width: 142px;
+            height: 46px;
+            bottom: 15px;
+            left: 15px;
+            z-index: 100;
+            color: #fff;
+        }
+        .zs-startbutton {
+            background-color: #FF4500;
+        }
+        .zs-startbutton:hover {
+            background-color: #e63d00;
+        }
+        .zs-stopbutton {
+            background-color: #00A368;
+        }
+        .zs-stopbutton:hover {
+            background-color: #008f5b;
+        }
+    `;
+    document.head.appendChild(zs_style);
+
+    let zs_running = true;
+    let zs_initialized;
+    let placeTimeout;
+
+    const zs_version = 0.2;
+    const zs_startButton = document.createElement('button');
+    zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
+    zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
+    document.body.appendChild(zs_startButton)
 
     // Load Toastify
     await new Promise((resolve, reject) => {
@@ -37,16 +78,14 @@
         Toastify({
             text: msg,
             duration: 5000,
-            gravity: "bottom",
-            position: "right",
+            gravity: 'bottom',
+            position: 'right',
             stopOnFocus: true,
+            className: 'zs-pixeled',
             style: {
                 background: '#383838',
                 color: '#fff',
-                border: '3px solid #000000',
                 'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
-                'font-family': `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;`,
-                'font-weight': 600,
             },
         }).showToast();
     }
@@ -54,16 +93,14 @@
         Toastify({
             text: msg,
             duration: 5000,
-            gravity: "bottom",
-            position: "right",
+            gravity: 'bottom',
+            position: 'right',
             stopOnFocus: true,
+            className: 'zs-pixeled',
             style: {
                 background: '#FFA800',
                 color: '#000',
-                border: '3px solid #000000',
                 'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
-                'font-family': `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;`,
-                'font-weight': 600,
             },
         }).showToast();
     }
@@ -71,16 +108,14 @@
         Toastify({
             text: msg,
             duration: 5000,
-            gravity: "bottom",
-            position: "right",
+            gravity: 'bottom',
+            position: 'right',
             stopOnFocus: true,
+            className: 'zs-pixeled',
             style: {
                 background: '#d93a00',
                 color: '#fff',
-                border: '3px solid #000000',
                 'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
-                'font-family': `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;`,
-                'font-weight': 600,
             },
         }).showToast();
     }
@@ -88,16 +123,14 @@
         Toastify({
             text: msg,
             duration: 5000,
-            gravity: "bottom",
-            position: "right",
+            gravity: 'bottom',
+            position: 'right',
             stopOnFocus: true,
+            className: 'zs-pixeled',
             style: {
                 background: '#00A368',
                 color: '#fff',
-                border: '3px solid #000000',
                 'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
-                'font-family': `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;`,
-                'font-weight': 600,
             },
         }).showToast();
     }
@@ -106,15 +139,14 @@
             text: 'Neue Version auf https://place.army/ verfügbar!',
             destination: 'https://place.army/',
             duration: -1,
-            gravity: "bottom",
-            position: "right",
+            gravity: 'bottom',
+            position: 'right',
+            stopOnFocus: true,
+            className: 'zs-pixeled',
             style: {
                 background: '#3690EA',
                 color: '#fff',
-                border: '3px solid #000000',
                 'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
-                'font-family': `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;`,
-                'font-weight': 600,
             },
         }).showToast();
     }
@@ -222,11 +254,13 @@
     let c2;
     let tokens = ['Wololo']; // We only have one token
 
-    let placeTimeout;
     const zs_requestJob = () => {
         if (c2.readyState !== c2.OPEN) {
             zs_error('Verbindung zum "Carpetbomber" abgebrochen. Verbinde...');
             zs_initCarpetbomberConnection();
+            return;
+        }
+        if (!zs_running) {
             return;
         }
         c2.send(JSON.stringify({ type: "RequestJobs", tokens: tokens }));
@@ -249,7 +283,7 @@
                 clearTimeout(placeTimeout);
             placeTimeout = setTimeout(() => {
                     zs_requestJob();
-                }, Math.max(5000, Date.parse(ratelimit) + 1000 - Date.now()));
+                }, Math.max(5000, Date.parse(ratelimit) + 2000 - Date.now()));
                 return;
             }
             // Other error. No jobs left?
@@ -261,12 +295,11 @@
             return;
         }
         // Execute job
-        console.log(JSON.stringify(job));
         zs_placePixel(job.x, job.y, job.color - 1).then((nextTry) => {
             clearTimeout(placeTimeout);
             placeTimeout = setTimeout(() => {
                 zs_requestJob();
-            }, Math.max(5000, (nextTry || 5*60*1000) - Date.now()));
+            }, Math.max(5000, (nextTry || 5*60*1000) + 2000 - Date.now()));
         });
     }
 
@@ -274,20 +307,22 @@
         c2 = new WebSocket("wss://carpetbomber.place.army");
 
         c2.onopen = () => {
+            zs_initialized = true;
             zs_info('Verbinde mit "Carpetbomber"...');
             c2.send(JSON.stringify({ type: "Handshake", version: zs_version }));
             zs_requestJob();
+            setInterval(() => c2.send(JSON.stringify({ type: "Wakeup"})), 40*1000);
         }
         
         c2.onerror = (error) => {
-            zs_error('Verbindung zum "Carpetbomber" fehlgeschlagen! Versuchen in 5s erneut');
+            zs_error('Verbindung zum "Carpetbomber" fehlgeschlagen! Versuche in 5s erneut');
             console.error(error);
             setTimeout(zs_initCarpetbomberConnection, 5000);
         }
 
         c2.onmessage = (event) => {
             data = JSON.parse(event.data)
-            console.log('received: %s', JSON.stringify(data));
+            // console.log('received: %s', JSON.stringify(data));
 
             if (data.type === 'UpdateVersion') {
                 zs_success('Verbindung aufgebaut!');
@@ -301,4 +336,28 @@
     }
     
     zs_initCarpetbomberConnection();
+
+    const zs_startBot = () => {
+        zs_running = true;
+        zs_startButton.classList.remove('zs-startbutton');
+        zs_startButton.classList.add('zs-stopbutton');
+        if (zs_initialized) {
+            zs_requestJob();
+        }
+    }
+
+    const zs_stopBot = () => {
+        zs_running = false;
+        clearTimeout(placeTimeout);
+        zs_startButton.classList.remove('zs-stopbutton');
+        zs_startButton.classList.add('zs-startbutton');
+    }
+
+    zs_startButton.onclick = () => {
+        if (zs_running) {
+            zs_stopBot();
+        } else {
+            zs_startBot();
+        }
+    }
 })();
