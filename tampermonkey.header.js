@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         r/placeDE Bot
+// @name         r/placeDE Zinnsoldat
 // @namespace    http://tampermonkey.net/
-// @version      7
-// @description  try to take over the canvas!
+// @version      0.2
+// @description  Einer von uns!
 // @author       placeDE Devs
 // @match        https://www.reddit.com/r/place/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=reddit.com
-// @updateURL    TODO
-// @downloadURL  TODO
+// @updateURL    https://github.com/PlaceDE-Official/zinnsoldat/raw/main/output/placebot.user.js
+// @downloadURL  https://github.com/PlaceDE-Official/zinnsoldat/raw/main/output/placebot.user.js
 // ==/UserScript==
