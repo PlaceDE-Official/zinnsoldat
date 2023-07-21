@@ -375,7 +375,7 @@
         }
 
         c2.onmessage = (event) => {
-            data = JSON.parse(event.data)
+            var data = JSON.parse(event.data)
             // console.log('received: %s', JSON.stringify(data));
 
             if (data.type === 'UpdateVersion') {
