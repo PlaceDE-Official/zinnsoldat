@@ -43,7 +43,7 @@
             background: linear-gradient(-90deg, #00A368 var(--zs_timeout, 0%), #00db8b var(--zs_timeout, 0%));
         }
         .zs-stopbutton:hover {
-            background-color: #008f5b;
+            background: #008f5b;
         }
     `;
     document.head.appendChild(zs_style);
