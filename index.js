@@ -136,7 +136,7 @@
             }).showToast();
         }
 
-        static updateNotification = () => {
+        static update = () => {
             Toastify({
                 text: 'Neue Version auf https://place.army/ verfügbar!',
                 destination: 'https://place.army/',
@@ -147,6 +147,23 @@
                 className: 'zs-pixeled',
                 style: {
                     background: '#3690EA',
+                    color: '#fff',
+                    'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
+                },
+            }).showToast();
+        }
+
+        static place = (msg, x, y) => {
+            Toastify({
+                text: msg,
+                duration: 5000,
+                gravity: 'bottom',
+                position: 'right',
+                stopOnFocus: true,
+                className: 'zs-pixeled',
+                onClick: () => location.href = `https://www.reddit.com/r/place/?cx=${x}&cy=${y}&px=18&screenmode=fullscreen`,
+                style: {
+                    background: '#00A368',
                     color: '#fff',
                     'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
                 },
@@ -236,7 +253,7 @@
         }
     
         static getCanvasY = (x, y) => {
-            return zs_getCanvasId(x, y) < 3 ? y + 1000 : y;
+            return Canvas.getCanvasId(x, y) < 3 ? y + 1000 : y;
         }
     
         static placePixel = async (x, y, color) => {
@@ -250,11 +267,11 @@
                             'actionName': 'r/replace:set_pixel',
                             'PixelMessageData': {
                                 'coordinate': {
-                                    'x': getCanvasX(x, y),
-                                    'y': getCanvasY(x, y)
+                                    'x': Canvas.getCanvasX(x, y),
+                                    'y': Canvas.getCanvasY(x, y)
                                 },
                                 'colorIndex': color,
-                                'canvasIndex': getCanvasId(x, y)
+                                'canvasIndex': Canvas.getCanvasId(x, y)
                             }
                         }
                     },
@@ -304,7 +321,7 @@
                 return null;
             }
             console.log('Did place pixel at %s, %s in %s', x, y, color);
-            Toaster.success(`Pixel (${x}, ${y}) platziert!`);
+            Toaster.place(`Pixel (${x}, ${y}) platziert!`, x, y);
             return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
         }
     }
@@ -406,7 +423,7 @@
                 if (data.type === 'UpdateVersion') {
                     Toaster.success('Verbindung aufgebaut!');
                     if (data.version > zs_version) {
-                        Toaster.updateNotification();
+                        Toaster.update();
                     }
                 } else if (data.type == "Jobs") {
                     CarpetBomber.processJobResponse(data.jobs);
