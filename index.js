@@ -138,6 +138,22 @@
             },
         }).showToast();
     }
+    const zs_placed = (msg, x, y) => {
+        Toastify({
+            text: msg,
+            duration: 5000,
+            gravity: 'bottom',
+            position: 'right',
+            stopOnFocus: true,
+            className: 'zs-pixeled',
+            onClick: () => location.href = `https://www.reddit.com/r/place/?cx=${x}&cy=${y}&px=18&screenmode=fullscreen`,
+            style: {
+                background: '#00A368',
+                color: '#fff',
+                'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
+            },
+        }).showToast();
+    }
     const zs_updateNotification = () => {
         Toastify({
             text: 'Neue Version auf https://place.army/ verfügbar!',
@@ -300,7 +316,7 @@
             return null;
         }
         console.log('Did place pixel at %s, %s in %s', x, y, color);
-        zs_success(`Pixel (${x}, ${y}) platziert!`);
+        zs_placed(`Pixel (${x}, ${y}) platziert!`, x, y);
         return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
     }
 
