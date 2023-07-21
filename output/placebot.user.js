@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         r/placeDE Zinnsoldat
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Einer von uns!
 // @author       placeDE Devs
 // @match        https://*.reddit.com/r/place/*
@@ -11,7 +11,7 @@
 // ==/UserScript==
 (async () => {
     // Check for correct page
-    if (!window.location.href.startsWith('https://www.reddit.com/r/place/')) {
+    if (!window.location.href.startsWith('https://www.reddit.com/r/place/') && !window.location.href.startsWith('https://new.reddit.com/r/place/')) {
         return;
     }
 
@@ -26,6 +26,9 @@
 
     const zs_style = document.createElement('style');
     zs_style.innerHTML = `
+        .zs-hidden {
+            display: none;
+        }
         .zs-pixeled {
             border: 3px solid #000000;
             box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.75);
@@ -53,6 +56,16 @@
         .zs-stopbutton:hover {
             background-color: #008f5b;
         }
+        .zs-timeout {
+            position: fixed;
+            left: 50%;
+            margin-left: -90px;
+            bottom: 28px;
+            width: 180px;
+            height: 46px;
+            background: linear-gradient(-90deg, rgb(42, 60, 66) var(--zs_timeout), rgb(87, 111, 118) var(--zs_timeout));
+            z-index: 100;
+        }
     `;
     document.head.appendChild(zs_style);
 
@@ -60,11 +73,16 @@
     let zs_initialized;
     let placeTimeout;
 
-    const zs_version = 0.2;
+    const zs_version = "0.3";
     const zs_startButton = document.createElement('button');
     zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
     document.body.appendChild(zs_startButton)
+
+    const zs_timeout = document.createElement('div');
+    zs_timeout.classList.add('zs-pixeled', 'zs-timeout');
+    zs_timeout.style.setProperty('--zs_timeout', '100%');
+    document.body.appendChild(zs_timeout);
 
     // Load Toastify
     await new Promise((resolve, reject) => {
@@ -164,6 +182,49 @@
 
     zs_info('Einer von uns!');
 
+    // Override setTimeout to allow getting the time left
+    const _setTimeout = setTimeout; 
+    const _clearTimeout = clearTimeout; 
+    const zs_allTimeouts = {};
+    
+    setTimeout = (callback, delay) => {
+        let id = _setTimeout(callback, delay);
+        zs_allTimeouts[id] = Date.now() + delay;
+        return id;
+    };
+
+    clearTimeout = (id) => {
+        _clearTimeout(id);
+        zs_allTimeouts[id] = undefined;
+    }
+    
+    const getTimeout = (id) => {
+        if (zs_allTimeouts[id]) {
+            return Math.max(
+                zs_allTimeouts[id] - Date.now(),
+                0 // Make sure we get no negative values for timeouts that are already done
+            )
+        }
+
+        return NaN;
+    }
+
+    setInterval(() => {
+        const theTimeout = getTimeout(placeTimeout)
+        if (Number.isNaN(theTimeout)) {
+            // Hide it
+            zs_timeout.style.opacity = 0;
+        }
+
+        // Show it
+        zs_timeout.style.opacity = 1;
+
+        // Update the percentage
+        const maxTimeout = 300000; // 5min
+        const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
+        zs_timeout.style.setProperty("--zs_timeout", `${percentage}%`)
+    }, 1)
+
     // Retrieve access token
     const zs_getAccessToken = async () => {
         const usingOldReddit = window.location.href.includes('new.reddit.com');
@@ -178,14 +239,21 @@
     zs_success('Zugriff gewährt!');
 
     const zs_getCanvasId = (x, y) => {
-        if (y < 0) {
+        if (y < 0 && x < 500) {
             return 1;
+        } else if (y < 0 && x >= 500) {
+            return 2;
+        } else if (y >= 0 && x < 500) {
+            return 4;
+        } else if (y >= 0 && x >= 500) {
+            return 5;
         }
-        return 4;
+        console.error('Unknown canvas!');
+        return 0;
     }
 
     const zs_getCanvasX = (x, y) => {
-        return x + 500;
+        return (x + 500) % 1000;
     }
 
     const zs_getCanvasY = (x, y) => {
@@ -193,7 +261,7 @@
     }
 
     const zs_placePixel = async (x, y, color) => {
-        console.log('Placed pixel at %s, %s in %s', x, y, color);
+        console.log('Trying to place pixel at %s, %s in %s', x, y, color);
         const response = await fetch('https://gql-realtime-2.reddit.com/query', {
             method: 'POST',
             body: JSON.stringify({
@@ -247,13 +315,16 @@
         const data = await response.json()
         if (data.errors !== undefined) {
             if (data.errors[0].message === 'Ratelimited') {
+                console.log('Could not place pixel at %s, %s in %s - Ratelimit', x, y, color);
                 zs_warn('Du hast noch Abklingzeit!');
                 return data.errors[0].extensions?.nextAvailablePixelTs;
             }
+            console.log('Could not place pixel at %s, %s in %s - Response error', x, y, color);
             console.error(data.errors);
             zs_error('Fehler beim Platzieren des Pixels');
             return null;
         }
+        console.log('Did place pixel at %s, %s in %s', x, y, color);
         zs_success(`Pixel (${x}, ${y}) platziert!`);
         return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
     }
@@ -349,6 +420,7 @@
         zs_running = true;
         zs_startButton.classList.remove('zs-startbutton');
         zs_startButton.classList.add('zs-stopbutton');
+        zs_timeout.classList.remove('zs-hidden');
         if (zs_initialized) {
             zs_requestJob();
         }
@@ -359,6 +431,7 @@
         clearTimeout(placeTimeout);
         zs_startButton.classList.remove('zs-stopbutton');
         zs_startButton.classList.add('zs-startbutton');
+        zs_timeout.classList.add('zs-hidden');
     }
 
     zs_startButton.onclick = () => {

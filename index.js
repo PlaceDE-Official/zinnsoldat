@@ -15,6 +15,9 @@
 
     const zs_style = document.createElement('style');
     zs_style.innerHTML = `
+        .zs-hidden {
+            display: none;
+        }
         .zs-pixeled {
             border: 3px solid #000000;
             box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.75);
@@ -40,7 +43,7 @@
             background: linear-gradient(-90deg, #00A368 var(--zs_timeout, 0%), #00db8b var(--zs_timeout, 0%));
         }
         .zs-stopbutton:hover {
-            background: #008f5b;
+            background-color: #008f5b;
         }
     `;
     document.head.appendChild(zs_style);
@@ -49,7 +52,7 @@
     let zs_initialized;
     let placeTimeout;
 
-    const zs_version = "0.2";
+    const zs_version = "0.3";
     const zs_startButton = document.createElement('button');
     zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
@@ -206,14 +209,21 @@
     zs_success('Zugriff gewährt!');
 
     const zs_getCanvasId = (x, y) => {
-        if (y < 0) {
+        if (y < 0 && x < 500) {
             return 1;
+        } else if (y < 0 && x >= 500) {
+            return 2;
+        } else if (y >= 0 && x < 500) {
+            return 4;
+        } else if (y >= 0 && x >= 500) {
+            return 5;
         }
-        return 4;
+        console.error('Unknown canvas!');
+        return 0;
     }
 
     const zs_getCanvasX = (x, y) => {
-        return x + 500;
+        return (x + 500) % 1000;
     }
 
     const zs_getCanvasY = (x, y) => {
@@ -380,6 +390,7 @@
         zs_running = true;
         zs_startButton.classList.remove('zs-startbutton');
         zs_startButton.classList.add('zs-stopbutton');
+        zs_timeout.classList.remove('zs-hidden');
         if (zs_initialized) {
             zs_requestJob();
         }
@@ -390,6 +401,7 @@
         clearTimeout(placeTimeout);
         zs_startButton.classList.remove('zs-stopbutton');
         zs_startButton.classList.add('zs-startbutton');
+        zs_timeout.classList.add('zs-hidden');
     }
 
     zs_startButton.onclick = () => {
