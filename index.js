@@ -49,7 +49,7 @@
     let zs_initialized;
     let placeTimeout;
 
-    const zs_version = 0.2;
+    const zs_version = "0.2";
     const zs_startButton = document.createElement('button');
     zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
