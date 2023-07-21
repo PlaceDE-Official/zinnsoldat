@@ -1,6 +1,9 @@
 (async () => {
     // Check for correct page
-    if (!window.location.href.startsWith('https://www.reddit.com/r/place/')) {
+    const supported = ['https://www.reddit.com/r/place/', 'https://new.reddit.com/r/place/'];
+    const url = window.location.href.split('?')[0];
+    
+    if (!supported.includes(url)) {
         return;
     }
 
@@ -155,8 +158,6 @@
 
     // Retrieve access token
     const zs_getAccessToken = async () => {
-        const usingOldReddit = window.location.href.includes('new.reddit.com');
-        const url = usingOldReddit ? 'https://new.reddit.com/r/place/' : 'https://www.reddit.com/r/place/';
         const response = await fetch(url);
         const responseText = await response.text();
     
