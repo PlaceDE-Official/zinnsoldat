@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "bookmarklet": "make bookmarklet",
+    "tampermonkey": "make tampermonkey"
+  },
+  "dependencies": {
+    "uglify-js": "^3.17.4"
+  }
+}
