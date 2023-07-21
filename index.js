@@ -37,16 +37,10 @@
             background-color: #e63d00;
         }
         .zs-stopbutton {
-            background-color: #00A368;
+            background: linear-gradient(-90deg, #00A368 var(--zs_timeout, 0%), #00db8b var(--zs_timeout, 0%));
         }
         .zs-stopbutton:hover {
-            background-color: #008f5b;
-        }
-        .zs-timeout {
-            width: 125px;
-            height: 5px;
-            margin: auto;
-            background: linear-gradient(-90deg, rgb(97, 97, 97) var(--zs_timeout), rgb(16, 173, 241) var(--zs_timeout));
+            background: #008f5b;
         }
     `;
     document.head.appendChild(zs_style);
@@ -59,12 +53,7 @@
     const zs_startButton = document.createElement('button');
     zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
-    document.body.appendChild(zs_startButton)
-
-    const zs_timeout = document.createElement("div");
-    zs_timeout.classList.add("zs-timeout");
-    zs_timeout.style.setProperty("--zs_timeout", "0%");
-    zs_startButton.appendChild(zs_timeout);
+    document.body.appendChild(zs_startButton);
 
     // Load Toastify
     await new Promise((resolve, reject) => {
@@ -192,19 +181,15 @@
     }
 
     setInterval(() => {
-        const theTimeout = getTimeout(placeTimeout)
+        const theTimeout = getTimeout(placeTimeout);
         if (Number.isNaN(theTimeout)) {
-            // Hide it
-            zs_timeout.style.opacity = 0;
+            theTimeout = 0;
         }
 
-        // Show it
-        zs_timeout.style.opacity = 1;
-
         // Update the percentage
-        const maxTimeout = 300000; // 5min
+        const maxTimeout = 5*60*1000; // 5min
         const percentage = Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
-        zs_timeout.style.setProperty("--zs_timeout", `${percentage}%`)
+        zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`)
     }, 1)
 
     // Retrieve access token
@@ -299,7 +284,7 @@
             zs_error('Fehler beim Platzieren des Pixels');
             return null;
         }
-        console.log('Did place pixel at %s, %s in %s', x, y, color);
+        console.log('Placed pixel at %s, %s in %s', x, y, color);
         zs_success(`Pixel (${x}, ${y}) platziert!`);
         return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
     }
@@ -375,7 +360,7 @@
         }
 
         c2.onmessage = (event) => {
-            data = JSON.parse(event.data)
+            const data = JSON.parse(event.data)
             // console.log('received: %s', JSON.stringify(data));
 
             if (data.type === 'UpdateVersion') {
