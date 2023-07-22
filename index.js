@@ -221,7 +221,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "1.0";
+    const zs_version = "1.1";
     let zs_accessToken;
     let c2;
 
@@ -507,7 +507,7 @@
         zs_startButton.classList.remove('zs-startbutton');
         zs_startButton.classList.add('zs-stopbutton');
         if (zs_initialized) {
-            CarpetBomber.zs_requestJob();
+            CarpetBomber.requestJob();
         }
     }
 
