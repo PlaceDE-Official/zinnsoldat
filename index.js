@@ -320,8 +320,18 @@
                 Toaster.error('Fehler beim Platzieren des Pixels');
                 return null;
             }
+            
+            // Pixels placed counter
+            let pixelsPlacedThisSession = 0;
+            if (localStorage.getItem('pixelsPlacedThisSession') !== null) {
+                pixelsPlacedThisSession = parseInt(localStorage.getItem('pixelsPlacedThisSession'));
+            }
+            pixelsPlacedThisSession += 1;
+            localStorage.setItem('pixelsPlacedThisSession', pixelsPlacedThisSession);
+            
             console.log('Did place pixel at %s, %s in %s', x, y, color);
-            Toaster.place(`Pixel (${x}, ${y}) platziert!`, x, y);
+            Toaster.place(`Pixel (${x}, ${y}) platziert! (#${pixelsPlacedThisSession})`, x, y);
+            
             return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
         }
 
@@ -375,21 +385,6 @@
             }
             return null;
         }
-<<<<<<< HEAD
-        console.log('Did place pixel at %s, %s in %s', x, y, color);
-
-        // Pixels placed counter
-        let pixelsPlacedThisSession = 0;
-        if (localStorage.getItem('pixelsPlacedThisSession') !== null) {
-            pixelsPlacedThisSession = parseInt(localStorage.getItem('pixelsPlacedThisSession'));
-        }
-        pixelsPlacedThisSession += 1;
-        localStorage.setItem('pixelsPlacedThisSession', pixelsPlacedThisSession);
-
-        zs_success(`Pixel (${x}, ${y}) platziert! (#${pixelsPlacedThisSession})`);
-        return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
-=======
->>>>>>> eb37246fe446cfea9665e322915f3db7edfdab5e
     }
 
     // ----------------------------------------
