@@ -232,7 +232,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "0.5";
+    const zs_version = "0.6";
     let zs_accessToken;
     let c2;
 
