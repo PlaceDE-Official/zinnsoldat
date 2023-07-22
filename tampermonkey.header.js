@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         r/placeDE Zinnsoldat
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Einer von uns!
 // @author       placeDE Devs
 // @match        https://*.reddit.com/r/place/*
