@@ -221,7 +221,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "1.1";
+    const zs_version = "1.2";
     let zs_accessToken;
     let c2;
 
@@ -313,12 +313,12 @@
                 if (data.errors[0].message === 'Ratelimited') {
                     console.log('Could not place pixel at %s, %s in %s - Ratelimit', x, y, color);
                     Toaster.warn('Du hast noch Abklingzeit!');
-                    return data.errors[0].extensions?.nextAvailablePixelTs;
+                    return { status: 'Failure', timestamp: data.errors[0].extensions?.nextAvailablePixelTs };
                 }
                 console.log('Could not place pixel at %s, %s in %s - Response error', x, y, color);
                 console.error(data.errors);
                 Toaster.error('Fehler beim Platzieren des Pixels');
-                return null;
+                return { status: 'Failure', timestamp: null };
             }
             
             // Pixels placed counter
@@ -327,8 +327,8 @@
             
             console.log('Did place pixel at %s, %s in %s', x, y, color);
             Toaster.place(`Pixel (${x}, ${y}) platziert! (#${pixelsPlacedThisSession})`, x, y);
-            
-            return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp;
+
+            return { status: 'Success', timestamp: data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp };
         }
 
         static requestCooldown = async () => {
@@ -448,11 +448,30 @@
                 return;
             }
             // Execute job
-            Canvas.placePixel(job.x, job.y, job.color - 1).then((nextTry) => {
+            Canvas.placePixel(job.x, job.y, job.color - 1).then((placeResult) => {
+                const { status, timestamp } = placeResult;
+                // Replay acknoledgement
+                const token = CarpetBomber.getTokens()[0];
+                c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: status }}));
+                // Schedule next job
+                let nextTry = timestamp - Date.now() ? timestamp : 5*60*1000 + 2000 + Math.floor(Math.random()*8000);
                 clearTimeout(placeTimeout);
                 placeTimeout = setTimeout(() => {
                     CarpetBomber.requestJob();
-                }, Math.max(5000, (nextTry || 5*60*1000) + 2000 - Date.now()));
+                }, nextTry);
+            });
+        }
+
+        static startRequestLoop = () => {
+            Canvas.requestCooldown().then((nextTry) => {
+                if (!nextTry) {
+                    CarpetBomber.requestJob();
+                } else {
+                    clearTimeout(placeTimeout);
+                    placeTimeout = setTimeout(() => {
+                        CarpetBomber.requestJob();
+                    }, Math.max(5000, nextTry + 2000 - Date.now()));
+                }
             });
         }
 
@@ -460,19 +479,8 @@
             c2 = new WebSocket("wss://carpetbomber.place.army");
 
             c2.onopen = () => {
-                zs_initialized = true;
                 Toaster.info('Verbinde mit "Carpetbomber"...');
                 c2.send(JSON.stringify({ type: "Handshake", version: zs_version }));
-                Canvas.requestCooldown().then((nextTry) => {
-                    if (!nextTry) {
-                        CarpetBomber.requestJob();
-                    } else {
-                        clearTimeout(placeTimeout);
-                        placeTimeout = setTimeout(() => {
-                            CarpetBomber.requestJob();
-                        }, Math.max(5000, nextTry + 2000 - Date.now()));
-                    }
-                })
                 setInterval(() => c2.send(JSON.stringify({ type: "Wakeup"})), 40*1000);
             }
             
@@ -488,9 +496,16 @@
 
                 if (data.type === 'UpdateVersion') {
                     Toaster.success('Verbindung aufgebaut!');
-                    if (data.version > zs_version) {
+                    if (!data.version || data.version === 'Unsupported') {
+                        zs_stopBot();
+                        Toaster.error('Version nicht mehr unterstützt!');
+                        Toaster.update();
+                        return;
+                    } else if (data.version > zs_version) {
                         Toaster.update();
                     }
+                    zs_initialized = true;
+                    CarpetBomber.startRequestLoop();
                 } else if (data.type == "Jobs") {
                     CarpetBomber.processJobResponse(data.jobs);
                 }
@@ -509,11 +524,13 @@
     document.body.appendChild(zs_startButton);
 
     const zs_startBot = () => {
-        zs_running = true;
-        zs_startButton.classList.remove('zs-startbutton');
-        zs_startButton.classList.add('zs-stopbutton');
         if (zs_initialized) {
-            CarpetBomber.requestJob();
+            zs_running = true;
+            zs_startButton.classList.remove('zs-startbutton');
+            zs_startButton.classList.add('zs-stopbutton');
+            CarpetBomber.startRequestLoop();
+        } else {
+            Toaster.error('Version nicht mehr unterstützt!');
         }
     }
 
