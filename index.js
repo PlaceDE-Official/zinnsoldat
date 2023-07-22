@@ -322,11 +322,7 @@
             }
             
             // Pixels placed counter
-            let pixelsPlacedThisSession = 0;
-            if (localStorage.getItem('pixelsPlacedThisSession') !== null) {
-                pixelsPlacedThisSession = parseInt(localStorage.getItem('pixelsPlacedThisSession'));
-            }
-            pixelsPlacedThisSession += 1;
+            let pixelsPlacedThisSession = parseInt(localStorage.getItem('pixelsPlacedThisSession') ?? '0') + 1;
             localStorage.setItem('pixelsPlacedThisSession', pixelsPlacedThisSession);
             
             console.log('Did place pixel at %s, %s in %s', x, y, color);
