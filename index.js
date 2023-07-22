@@ -249,7 +249,7 @@
         }
 
         static getCanvasX = (x, y) => {
-            return Math.abs((x + 500) % 1000);
+            return Math.abs((x + 1500) % 1000);
         }
     
         static getCanvasY = (x, y) => {
