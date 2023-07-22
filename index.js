@@ -221,7 +221,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "0.6";
+    const zs_version = "1.0";
     let zs_accessToken;
     let c2;
 
