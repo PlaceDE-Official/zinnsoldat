@@ -6,11 +6,17 @@ const WebSocket = require("./ws");
     // Basics
     // ----------------------------------------
 
+    // 1. öffne die Entwicklerwerkzeuge ([F12] oder [links click, Q])
+    // 2. führe folgenden Code aus: 'fetch("https://www.reddit.com/r/place/").then(res => res.text()).then(res => console.log(res.match(/"accessToken":"(\\"|[^"]*)"/)[1]));'
+    // 3. kopiere Zeichenkette (sowas wie "eyJhbGciOiJSUzI1NiIsImtpZCI6IlNIQTI1Nj...") in zs_accessToken
+    // WICHTIG: GIB NIEMANDEN DIESE ZEICHENKETTE, DIESER ERLAUBT ZUGRIFF AUF DEINEN ACCOUNT
+
     // 1. open developer tools ([F12] or [left click, Q])
-    // 2. run following code 'fetch("https://www.reddit.com/r/place/").then(res => res.text()).then(res => console.log(res.match(/"accessToken":"(\\"|[^"]*)"/)[1]));'
+    // 2. run following code: 'fetch("https://www.reddit.com/r/place/").then(res => res.text()).then(res => console.log(res.match(/"accessToken":"(\\"|[^"]*)"/)[1]));'
     // 3. copy string (something like "eyJhbGciOiJSUzI1NiIsImtpZCI6IlNIQTI1Nj...") to zs_accessToken
     // IMPORTANT: DONT GIVE THIS STRING TO ANYBODY, IT GIVES ACCESS TO YOUR ACCOUNT
     const zs_accessToken = "";
+
     const zs_version = "1.3";
     let c2;
 
