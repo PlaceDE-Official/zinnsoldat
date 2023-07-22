@@ -320,8 +320,14 @@
                 Toaster.error('Fehler beim Platzieren des Pixels');
                 return { status: 'Failure', timestamp: null };
             }
+            
+            // Pixels placed counter
+            let pixelsPlacedThisSession = parseInt(localStorage.getItem('pixelsPlacedThisSession') ?? '0') + 1;
+            localStorage.setItem('pixelsPlacedThisSession', pixelsPlacedThisSession);
+            
             console.log('Did place pixel at %s, %s in %s', x, y, color);
-            Toaster.place(`Pixel (${x}, ${y}) platziert!`, x, y);
+            Toaster.place(`Pixel (${x}, ${y}) platziert! (#${pixelsPlacedThisSession})`, x, y);
+
             return { status: 'Success', timestamp: data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp };
         }
 
