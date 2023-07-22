@@ -221,7 +221,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "1.2";
+    const zs_version = "1.3";
     let zs_accessToken;
     let c2;
 
@@ -448,7 +448,7 @@
                 const token = CarpetBomber.getTokens()[0];
                 c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: status }}));
                 // Schedule next job
-                let nextTry = timestamp - Date.now() ? timestamp : 5*60*1000 + 2000 + Math.floor(Math.random()*8000);
+                let nextTry = (timestamp ? timestamp - Date.now() : 5*60*1000) + 2000 + Math.floor(Math.random()*8000);
                 clearTimeout(placeTimeout);
                 placeTimeout = setTimeout(() => {
                     CarpetBomber.requestJob();
