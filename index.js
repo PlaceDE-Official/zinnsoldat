@@ -481,7 +481,7 @@
             c2.onerror = (error) => {
                 Toaster.error('Verbindung zum "Carpetbomber" fehlgeschlagen! Versuche in 5s erneut');
                 console.error(error);
-                setTimeout(zs_initCarpetbomberConnection, 5000);
+                setTimeout(CarpetBomber.initCarpetbomberConnection, 5000);
             }
 
             c2.onmessage = (event) => {
