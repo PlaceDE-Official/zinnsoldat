@@ -1,2 +1,2 @@
 #!/bin/sh
-node ./user.js > ./all.log 2>&1 &
+node ./index.js > ./all.log 2>&1 &

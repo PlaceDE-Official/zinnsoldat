@@ -1,0 +1,14 @@
+{
+  "name": "zinnsoldat",
+  "version": "1.3.0",
+  "description": "Lasse den Zinnsoldat für dich kämpfen",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Play_it",
+  "license": "MIT",
+  "dependencies": {
+    "ws": ">=8.13.0"
+  }
+}

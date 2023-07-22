@@ -1,5 +1,5 @@
 // SOURCE: https://github.com/PlaceDE-Official/zinnsoldat/raw/main/output/placebot.user.js
-const WebSocket = require("./ws");
+const WebSocket = require("ws");
 
 (async () => {
     // ----------------------------------------
