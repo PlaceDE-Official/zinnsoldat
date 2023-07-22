@@ -450,6 +450,19 @@
             });
         }
 
+        static startRequestLoop = () => {
+            Canvas.requestCooldown().then((nextTry) => {
+                if (!nextTry) {
+                    CarpetBomber.requestJob();
+                } else {
+                    clearTimeout(placeTimeout);
+                    placeTimeout = setTimeout(() => {
+                        CarpetBomber.requestJob();
+                    }, Math.max(5000, nextTry + 2000 - Date.now()));
+                }
+            });
+        }
+
         static initCarpetbomberConnection = () => {
             c2 = new WebSocket("wss://carpetbomber.place.army");
 
@@ -457,16 +470,7 @@
                 zs_initialized = true;
                 Toaster.info('Verbinde mit "Carpetbomber"...');
                 c2.send(JSON.stringify({ type: "Handshake", version: zs_version }));
-                Canvas.requestCooldown().then((nextTry) => {
-                    if (!nextTry) {
-                        CarpetBomber.requestJob();
-                    } else {
-                        clearTimeout(placeTimeout);
-                        placeTimeout = setTimeout(() => {
-                            CarpetBomber.requestJob();
-                        }, Math.max(5000, nextTry + 2000 - Date.now()));
-                    }
-                })
+                CarpetBomber.startRequestLoop();
                 setInterval(() => c2.send(JSON.stringify({ type: "Wakeup"})), 40*1000);
             }
             
@@ -507,7 +511,7 @@
         zs_startButton.classList.remove('zs-startbutton');
         zs_startButton.classList.add('zs-stopbutton');
         if (zs_initialized) {
-            CarpetBomber.requestJob();
+            CarpetBomber.startRequestLoop();
         }
     }
 
