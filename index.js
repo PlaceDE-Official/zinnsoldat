@@ -123,7 +123,7 @@
         static time_error = (msg) => {
             Toastify({
                 text: msg,
-                duration: 5000,
+                duration: 30000,
                 gravity: 'bottom',
                 position: 'right',
                 stopOnFocus: true,
