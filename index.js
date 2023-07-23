@@ -221,7 +221,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "1.4";
+    const zs_version = "1.5";
     let zs_accessToken;
     let c2;
 
@@ -316,7 +316,7 @@
                     return {
                         status: 'Failure',
                         timestamp: data.errors[0].extensions?.nextAvailablePixelTs,
-                        reason: data.errors.map(v => v.message).join(';')
+                        reason: data.errors[0].message
                     };
                 } else if (data.errors[0].message === 'user is not logged in') {
                     console.warn('User not logged in!');
@@ -494,9 +494,9 @@
             }
             
             c2.onerror = (error) => {
-                Toaster.error('Verbindung zum "Carpetbomber" fehlgeschlagen! Versuche in 5s erneut');
+                Toaster.error('Verbindung zum "Carpetbomber" fehlgeschlagen!');
                 console.error(error);
-                setTimeout(CarpetBomber.initCarpetbomberConnection, 5000);
+                //setTimeout(CarpetBomber.initCarpetbomberConnection, 5000);
             }
 
             c2.onmessage = (event) => {

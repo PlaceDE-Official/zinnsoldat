@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         r/placeDE Zinnsoldat
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  Einer von uns!
 // @author       placeDE Devs
 // @match        https://*.reddit.com/r/place/*
@@ -232,7 +232,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "1.4";
+    const zs_version = "1.5";
     let zs_accessToken;
     let c2;
 
@@ -320,25 +320,23 @@
                 }
             });
             const data = await response.json()
+            let timestamp = null;
             if (data.errors !== undefined) {
                 if (data.errors[0].message === 'Ratelimited') {
                     console.log('Could not place pixel at %s, %s in %s - Ratelimit', x, y, color);
                     Toaster.warn('Du hast noch Abklingzeit!');
-                    return {
-                        status: 'Failure',
-                        timestamp: data.errors[0].extensions?.nextAvailablePixelTs,
-                        reason: data.errors.map(v => v.message).join(';')
-                    };
+                    timestamp = data.errors[0].extensions?.nextAvailablePixelTs;
                 } else if (data.errors[0].message === 'user is not logged in') {
                     console.warn('User not logged in!');
                     Toaster.error('Du musst eingeloggt sein!');
                     zs_stopBot();
-                    return;
+                    timestamp = data.errors[0].extensions?.nextAvailablePixelTs
+                } else {
+                    console.log('Could not place pixel at %s, %s in %s - Response error', x, y, color);
+                    console.error(data.errors);
+                    Toaster.error('Fehler beim Platzieren des Pixels');
                 }
-                console.log('Could not place pixel at %s, %s in %s - Response error', x, y, color);
-                console.error(data.errors);
-                Toaster.error('Fehler beim Platzieren des Pixels');
-                return { status: 'Failure', timestamp: null, reason: '' };
+                return { status: 'Failure', timestamp, reason: data.errors[0].message };
             }
             
             // Pixels placed counter
@@ -505,9 +503,9 @@
             }
             
             c2.onerror = (error) => {
-                Toaster.error('Verbindung zum "Carpetbomber" fehlgeschlagen! Versuche in 5s erneut');
+                Toaster.error('Verbindung zum "Carpetbomber" fehlgeschlagen!');
                 console.error(error);
-                setTimeout(CarpetBomber.initCarpetbomberConnection, 5000);
+                //setTimeout(CarpetBomber.initCarpetbomberConnection, 5000);
             }
 
             c2.onmessage = (event) => {
