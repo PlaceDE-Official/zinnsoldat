@@ -416,7 +416,7 @@
             const ntpResponse = await fetch("https://worldtimeapi.org/api/timezone/est")
             const data = await ntpResponse.json()
             const ntpDate = data['unixtime'] * 1000
-            console.log("test1")
+
             if(ntpDate - Date.now() <= -6000){
                 Toaster.error("Die Computerzeit entspricht nicht der Serverzeit!")
                 Toaster.error("Bitte überprüfe die Zeiteinstellungen deines Computers!")
