@@ -318,6 +318,11 @@
                         timestamp: data.errors[0].extensions?.nextAvailablePixelTs,
                         reason: data.errors.map(v => v.message).join(';')
                     };
+                } else if (data.errors[0].message === 'user is not logged in') {
+                    console.warn('User not logged in!');
+                    Toaster.error('Du musst eingeloggt sein!');
+                    zs_stopBot();
+                    return;
                 }
                 console.log('Could not place pixel at %s, %s in %s - Response error', x, y, color);
                 console.error(data.errors);
@@ -458,7 +463,7 @@
                 const token = CarpetBomber.getTokens()[0];
                 c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: { type: status, reason } }}));
                 // Schedule next job
-                let nextTry = (timestamp ? timestamp - Date.now() : 5*60*1000) + 2000 + Math.floor(Math.random()*8000);
+                let nextTry = (timestamp ? timestamp - Date.now() : 5*60*1000) + 3000 + Math.floor(Math.random()*18000);
                 clearTimeout(placeTimeout);
                 placeTimeout = setTimeout(() => {
                     CarpetBomber.requestJob();
