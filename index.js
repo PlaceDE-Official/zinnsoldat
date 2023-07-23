@@ -412,7 +412,6 @@
     // ----------------------------------------
     class TimeChecker {
         static checkTime = async () => {
-            console.log("hallo")
             const ntpResponse = await fetch("https://worldtimeapi.org/api/timezone/est")
             const data = await ntpResponse.json()
             const ntpDate = data['unixtime'] * 1000
@@ -422,8 +421,6 @@
                 Toaster.error("Bitte überprüfe die Zeiteinstellungen deines Computers!")
                 return
             }
-
-            Toaster.success("Zeit ist synchron!")
         }
     }
 
