@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         r/placeDE Zinnsoldat
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  Einer von uns!
 // @author       placeDE Devs
 // @match        https://*.reddit.com/r/place/*
@@ -232,7 +232,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "1.3";
+    const zs_version = "1.4";
     let zs_accessToken;
     let c2;
 
@@ -324,16 +324,31 @@
                 if (data.errors[0].message === 'Ratelimited') {
                     console.log('Could not place pixel at %s, %s in %s - Ratelimit', x, y, color);
                     Toaster.warn('Du hast noch Abklingzeit!');
-                    return { status: 'Failure', timestamp: data.errors[0].extensions?.nextAvailablePixelTs };
+                    return {
+                        status: 'Failure',
+                        timestamp: data.errors[0].extensions?.nextAvailablePixelTs,
+                        reason: data.errors.map(v => v.message).join(';')
+                    };
+                } else if (data.errors[0].message === 'user is not logged in') {
+                    console.warn('User not logged in!');
+                    Toaster.error('Du musst eingeloggt sein!');
+                    zs_stopBot();
+                    return;
                 }
                 console.log('Could not place pixel at %s, %s in %s - Response error', x, y, color);
                 console.error(data.errors);
                 Toaster.error('Fehler beim Platzieren des Pixels');
-                return { status: 'Failure', timestamp: null };
+                return { status: 'Failure', timestamp: null, reason: '' };
             }
+            
+            // Pixels placed counter
+            let pixelsPlacedThisSession = parseInt(localStorage.getItem('pixelsPlacedThisSession') ?? '0') + 1;
+            localStorage.setItem('pixelsPlacedThisSession', pixelsPlacedThisSession);
+            
             console.log('Did place pixel at %s, %s in %s', x, y, color);
-            Toaster.place(`Pixel (${x}, ${y}) platziert!`, x, y);
-            return { status: 'Success', timestamp: data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp };
+            Toaster.place(`Pixel (${x}, ${y}) platziert! (#${pixelsPlacedThisSession})`, x, y);
+
+            return { status: 'Success', timestamp: data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp, reason: '' };
         }
 
         static requestCooldown = async () => {
@@ -454,12 +469,12 @@
             }
             // Execute job
             Canvas.placePixel(job.x, job.y, job.color - 1).then((placeResult) => {
-                const { status, timestamp } = placeResult;
+                const { status, reason, timestamp } = placeResult;
                 // Replay acknoledgement
                 const token = CarpetBomber.getTokens()[0];
-                c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: status }}));
+                c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: { type: status, reason } }}));
                 // Schedule next job
-                let nextTry = (timestamp ? timestamp - Date.now() : 5*60*1000) + 2000 + Math.floor(Math.random()*8000);
+                let nextTry = (timestamp ? timestamp - Date.now() : 5*60*1000) + 3000 + Math.floor(Math.random()*18000);
                 clearTimeout(placeTimeout);
                 placeTimeout = setTimeout(() => {
                     CarpetBomber.requestJob();
@@ -492,7 +507,7 @@
             c2.onerror = (error) => {
                 Toaster.error('Verbindung zum "Carpetbomber" fehlgeschlagen! Versuche in 5s erneut');
                 console.error(error);
-                setTimeout(zs_initCarpetbomberConnection, 5000);
+                setTimeout(CarpetBomber.initCarpetbomberConnection, 5000);
             }
 
             c2.onmessage = (event) => {
