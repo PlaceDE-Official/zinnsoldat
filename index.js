@@ -408,6 +408,23 @@
     }
 
     // ----------------------------------------
+    // TimeChecker
+    // ----------------------------------------
+    class TimeChecker {
+        static checkTime = async () => {
+            const ntpResponse = await fetch("https://worldtimeapi.org/api/timezone/est")
+            const data = await ntpResponse.json()
+            const ntpDate = data['unixtime'] * 1000
+
+            if(ntpDate - Date.now() <= -6000){
+                Toaster.error("Die Computerzeit entspricht nicht der Serverzeit!")
+                Toaster.error("Bitte überprüfe die Zeiteinstellungen deines Computers!")
+                return
+            }
+        }
+    }
+
+    // ----------------------------------------
     // CarpetBomber
     // ----------------------------------------
 
@@ -566,5 +583,6 @@
     zs_accessToken = await RedditApi.getAccessToken();
     Toaster.success('Zugriff gewährt!');
 
+    await TimeChecker.checkTime();
     CarpetBomber.initCarpetbomberConnection();
 })();
