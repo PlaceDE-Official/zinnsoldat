@@ -1,3 +1,14 @@
+// ==UserScript==
+// @name         r/placeDE Zinnsoldat
+// @namespace    http://tampermonkey.net/
+// @version      1.4
+// @description  Einer von uns!
+// @author       placeDE Devs
+// @match        https://*.reddit.com/r/place/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=reddit.com
+// @updateURL    https://github.com/PlaceDE-Official/zinnsoldat/raw/main/output/placebot.user.js
+// @downloadURL  https://github.com/PlaceDE-Official/zinnsoldat/raw/main/output/placebot.user.js
+// ==/UserScript==
 (async () => {
     // Check for correct page
     if (!window.location.href.startsWith('https://www.reddit.com/r/place/') && !window.location.href.startsWith('https://new.reddit.com/r/place/')) {
@@ -408,6 +419,25 @@
     }
 
     // ----------------------------------------
+    // TimeChecker
+    // ----------------------------------------
+    class TimeChecker {
+        static checkTime = async () => {
+            console.log("hallo")
+            const ntpResponse = await fetch("https://worldtimeapi.org/api/timezone/est")
+            const data = await ntpResponse.json()
+            const ntpDate = data['unixtime'] * 1000
+            console.log("test1")
+            if(ntpDate - Date.now() <= -6000){
+                Toaster.error("Die Computerzeit entspricht nicht der Serverzeit!")
+                return
+            }
+
+            Toaster.success("Zeit ist synchron!")
+        }
+    }
+
+    // ----------------------------------------
     // CarpetBomber
     // ----------------------------------------
 
@@ -566,5 +596,6 @@
     zs_accessToken = await RedditApi.getAccessToken();
     Toaster.success('Zugriff gewährt!');
 
+    await TimeChecker.checkTime();
     CarpetBomber.initCarpetbomberConnection();
 })();
