@@ -225,7 +225,7 @@
         }
 
         // Update the percentage
-        const maxTimeout = 240000; // 5min
+        const maxTimeout = 240000; // 4min
         const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
         zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`)
     }, 1)
