@@ -240,8 +240,8 @@
         const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
         zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`)
         zs_startButtonTitle.innerText = `Zinnsoldat v${zs_version}`;
-        zs_startButtonSubTitle.innerText = `Fortschritt: ${100-percentage}%`;
-    }, 1)
+        zs_startButtonSubTitle.innerText = `Nächster Pixel: ${Math.floor(theTimeout/1000)}s`;
+    }, 1000)
 
     // ----------------------------------------
     // Basics
@@ -584,15 +584,12 @@
 
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
     zs_startButton.style.setProperty('--zs_timeout', '100%');
-
     zs_startButtonTitle.innerText = `Zinnsoldat v${zs_version}`;
-    zs_startButtonTitle.classList.add('zs-title')
-
-    zs_startButtonSubTitle.innerText = "Initialisieren..."
-    zs_startButtonSubTitle.classList.add('zs-subtitle')
-
-    zs_startButton.appendChild(zs_startButtonTitle)
-    zs_startButton.appendChild(zs_startButtonSubTitle)
+    zs_startButtonTitle.classList.add('zs-title');
+    zs_startButton.appendChild(zs_startButtonTitle);
+    zs_startButtonSubTitle.innerText = "Initialisiere...";
+    zs_startButtonSubTitle.classList.add('zs-subtitle');
+    zs_startButton.appendChild(zs_startButtonSubTitle);
     document.body.appendChild(zs_startButton);
 
     const zs_startBot = () => {
