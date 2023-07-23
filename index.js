@@ -120,6 +120,22 @@
             }).showToast();
         }
 
+        static time_error = (msg) => {
+            Toastify({
+                text: msg,
+                duration: 30000,
+                gravity: 'bottom',
+                position: 'right',
+                stopOnFocus: true,
+                className: 'zs-pixeled',
+                style: {
+                    background: '#d93a00',
+                    color: '#fff',
+                    'box-shadow': '8px 8px 0px rgba(0, 0, 0, 0.75)',
+                },
+            }).showToast();
+        }
+
         static success = (msg) => {
             Toastify({
                 text: msg,
@@ -416,11 +432,17 @@
             const data = await ntpResponse.json()
             const ntpDate = data['unixtime'] * 1000
 
-            if(ntpDate - Date.now() <= -6000){
-                Toaster.error("Die Computerzeit entspricht nicht der Serverzeit!")
-                Toaster.error("Bitte überprüfe die Zeiteinstellungen deines Computers!")
-                return
+            if(ntpDate - Date.now() <= -60000){
+                let error_message = `Deine Computerzeit weicht um >= 1 Minute von der Serverzeit ab!
+                Um die Server nicht mit Anfragen zu fluten stoppt der Zinnsoldat nun.
+                Bitte stelle sicher, dass die Zeit deines Computers richtig synchronisiert ist!
+                Lade im Anschluss die Seite neu um den Zinnsoldaten erneut zu starten.
+                `
+                Toaster.time_error(error_message)
+                return false
             }
+
+            return true
         }
     }
 
@@ -583,6 +605,6 @@
     zs_accessToken = await RedditApi.getAccessToken();
     Toaster.success('Zugriff gewährt!');
 
-    await TimeChecker.checkTime();
-    CarpetBomber.initCarpetbomberConnection();
+    let isTimeSynchronized = await TimeChecker.checkTime();
+    if(isTimeSynchronized) { CarpetBomber.initCarpetbomberConnection(); }
 })();
