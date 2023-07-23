@@ -419,6 +419,7 @@
             console.log("test1")
             if(ntpDate - Date.now() <= -6000){
                 Toaster.error("Die Computerzeit entspricht nicht der Serverzeit!")
+                Toaster.error("Bitte überprüfe die Zeiteinstellungen deines Computers!")
                 return
             }
 
