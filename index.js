@@ -238,7 +238,6 @@
         // Update the percentage
         const maxTimeout = 300000; // 5min
         const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
-        console.log(percentage);
         zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`)
         zs_startButtonTitle.innerText = `Zinnsoldat v${zs_version}`;
         zs_startButtonSubTitle.innerText = `Fortschritt: ${100-percentage}%`;
