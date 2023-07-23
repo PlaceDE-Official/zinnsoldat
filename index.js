@@ -22,16 +22,25 @@
             border: 3px solid #000000;
             box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.75);
             font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;
-            font-weight: 600;
+            font-size: 14px;
         }
         .zs-button {
             position: fixed;
-            width: 142px;
-            height: 46px;
-            bottom: 15px;
+            width: 148px;
+            height: 52px;
+            bottom: 28px;
             left: 15px;
             z-index: 100;
             color: #fff;
+        }
+        .zs-title {
+            font-weight: 600;
+            line-height: 20px;
+        }
+        .zs-subtitle {
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
         }
         .zs-startbutton {
             background: linear-gradient(-90deg, #C03400 var(--zs_timeout), #FF4500 var(--zs_timeout));
@@ -219,6 +228,8 @@
     }
 
     setInterval(() => {
+        if (!zs_running) return
+
         let theTimeout = getTimeout(placeTimeout)
         if (Number.isNaN(theTimeout)) {
             theTimeout = 0;
@@ -228,7 +239,9 @@
         const maxTimeout = 240000; // 4min
         const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
         zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`)
-    }, 1)
+        zs_startButtonTitle.innerText = `Zinnsoldat v${zs_version}`;
+        zs_startButtonSubTitle.innerText = `Nächster Pixel: ${Math.floor(theTimeout/1000)}s`;
+    }, 1000)
 
     // ----------------------------------------
     // Basics
@@ -566,9 +579,17 @@
     // ----------------------------------------
 
     const zs_startButton = document.createElement('button');
-    zs_startButton.innerText = `Zinnsoldat v${zs_version}`;
+    const zs_startButtonTitle = document.createElement('div')
+    const zs_startButtonSubTitle = document.createElement('div')
+
     zs_startButton.classList.add('zs-pixeled', 'zs-button', 'zs-stopbutton');
     zs_startButton.style.setProperty('--zs_timeout', '100%');
+    zs_startButtonTitle.innerText = `Zinnsoldat v${zs_version}`;
+    zs_startButtonTitle.classList.add('zs-title');
+    zs_startButton.appendChild(zs_startButtonTitle);
+    zs_startButtonSubTitle.innerText = "Initialisiere...";
+    zs_startButtonSubTitle.classList.add('zs-subtitle');
+    zs_startButton.appendChild(zs_startButtonSubTitle);
     document.body.appendChild(zs_startButton);
 
     const zs_startBot = () => {
@@ -576,6 +597,7 @@
             zs_running = true;
             zs_startButton.classList.remove('zs-startbutton');
             zs_startButton.classList.add('zs-stopbutton');
+            zs_startButtonSubTitle.innerText = 'Startet...'
             CarpetBomber.startRequestLoop();
         } else {
             Toaster.error('Version nicht mehr unterstützt!');
@@ -587,6 +609,7 @@
         clearTimeout(placeTimeout);
         zs_startButton.classList.remove('zs-stopbutton');
         zs_startButton.classList.add('zs-startbutton');
+        zs_startButtonSubTitle.innerText = 'Deaktiviert'
     }
 
     zs_startButton.onclick = () => {
