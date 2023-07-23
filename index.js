@@ -205,6 +205,7 @@
     const _setTimeout = setTimeout; 
     const _clearTimeout = clearTimeout; 
     const zs_allTimeouts = {};
+    let zs_maxTimeout = 240000;
     
     setTimeout = (callback, delay) => {
         let id = _setTimeout(callback, delay);
@@ -236,11 +237,15 @@
         }
 
         // Update the percentage
-        const maxTimeout = 240000; // 4min
-        const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/maxTimeout) * 100), 0), 100)
-        zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`)
+        const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/zs_maxTimeout) * 100), 0), 100);
+        zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`);
         zs_startButtonTitle.innerText = `Zinnsoldat v${zs_version}`;
-        zs_startButtonSubTitle.innerText = `Nächster Pixel: ${Math.floor(theTimeout/1000)}s`;
+        const nextTryInSeconds = Math.floor(theTimeout/1000);
+        if (theTimeout > 0) {
+            zs_startButtonSubTitle.innerText = `Nächster Pixel: ${nextTryInSeconds}s`;
+        } else {
+            zs_startButtonSubTitle.innerText = 'Warten...';
+        }
     }, 1000)
 
     // ----------------------------------------
@@ -250,7 +255,7 @@
     let zs_running = true;
     let zs_initialized;
 
-    const zs_version = "1.5";
+    const zs_version = "1.6";
     let zs_accessToken;
     let c2;
 
@@ -483,6 +488,7 @@
         static processJobResponse = (jobs) => {
             if (!jobs || jobs === {}) {
                 Toaster.warn('Kein verfügbarer Auftrag. Versuche in 60s erneut');
+                zs_maxTimeout = 60000;
                 clearTimeout(placeTimeout);
                 placeTimeout = setTimeout(() => {
                     CarpetBomber.requestJob();
@@ -494,14 +500,17 @@
                 // Check if ratelimited and schedule retry
                 const ratelimit = code?.Ratelimited?.until;
                 if (ratelimit) {
+                    const nextTry = Math.max(5000, Date.parse(ratelimit) + 2000 - Date.now());
+                    zs_maxTimeout = nextTry;
                     clearTimeout(placeTimeout);
                     placeTimeout = setTimeout(() => {
                         CarpetBomber.requestJob();
-                    }, Math.max(5000, Date.parse(ratelimit) + 2000 - Date.now()));
+                    }, nextTry);
                     return;
                 }
                 // Other error. No jobs left?
                 Toaster.warn('Kein verfügbarer Auftrag. Versuche in 20s erneut');
+                zs_maxTimeout = 20000;
                 clearTimeout(placeTimeout);
                 placeTimeout = setTimeout(() => {
                     CarpetBomber.requestJob();
@@ -511,11 +520,12 @@
             // Execute job
             Canvas.placePixel(job.x, job.y, job.color - 1).then((placeResult) => {
                 const { status, reason, timestamp } = placeResult;
+                const nextTry = (timestamp ? timestamp - Date.now() : 5*60*1000) + 3000 + Math.floor(Math.random()*18000);
                 // Replay acknoledgement
                 const token = CarpetBomber.getTokens()[0];
-                c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: { type: status, reason } }}));
+                c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: { type: status, reason, cooldown: nextTry } }}));
                 // Schedule next job
-                let nextTry = (timestamp ? timestamp - Date.now() : 5*60*1000) + 3000 + Math.floor(Math.random()*18000);
+                zs_maxTimeout = nextTry;
                 clearTimeout(placeTimeout);
                 placeTimeout = setTimeout(() => {
                     CarpetBomber.requestJob();
@@ -528,10 +538,12 @@
                 if (!nextTry) {
                     CarpetBomber.requestJob();
                 } else {
+                    const nextTryWithOffset = nextTry + 2000 - Date.now()
+                    zs_maxTimeout = nextTryWithOffset;
                     clearTimeout(placeTimeout);
                     placeTimeout = setTimeout(() => {
                         CarpetBomber.requestJob();
-                    }, Math.max(5000, nextTry + 2000 - Date.now()));
+                    }, Math.max(5000, nextTryWithOffset));
                 }
             });
         }
@@ -587,7 +599,7 @@
     zs_startButtonTitle.innerText = `Zinnsoldat v${zs_version}`;
     zs_startButtonTitle.classList.add('zs-title');
     zs_startButton.appendChild(zs_startButtonTitle);
-    zs_startButtonSubTitle.innerText = "Initialisiere...";
+    zs_startButtonSubTitle.innerText = "Initialisieren...";
     zs_startButtonSubTitle.classList.add('zs-subtitle');
     zs_startButton.appendChild(zs_startButtonSubTitle);
     document.body.appendChild(zs_startButton);
@@ -597,7 +609,7 @@
             zs_running = true;
             zs_startButton.classList.remove('zs-startbutton');
             zs_startButton.classList.add('zs-stopbutton');
-            zs_startButtonSubTitle.innerText = 'Startet...'
+            zs_startButtonSubTitle.innerText = 'Starten...'
             CarpetBomber.startRequestLoop();
         } else {
             Toaster.error('Version nicht mehr unterstützt!');
