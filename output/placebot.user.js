@@ -8,6 +8,8 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=reddit.com
 // @updateURL    https://github.com/PlaceDE-Official/zinnsoldat/raw/main/output/placebot.user.js
 // @downloadURL  https://github.com/PlaceDE-Official/zinnsoldat/raw/main/output/placebot.user.js
+// @grant        GM.getValue
+// @grant        GM.setValue
 // ==/UserScript==
 (async () => {
     // Check for correct page
@@ -213,11 +215,11 @@
 
     // Override setTimeout to allow getting the time left
     let placeTimeout;
-    const _setTimeout = setTimeout; 
-    const _clearTimeout = clearTimeout; 
+    const _setTimeout = setTimeout;
+    const _clearTimeout = clearTimeout;
     const zs_allTimeouts = {};
     let zs_maxTimeout = 240000;
-    
+
     setTimeout = (callback, delay) => {
         let id = _setTimeout(callback, delay);
         zs_allTimeouts[id] = Date.now() + delay;
@@ -228,7 +230,7 @@
         _clearTimeout(id);
         zs_allTimeouts[id] = undefined;
     }
-    
+
     const getTimeout = (id) => {
         if (zs_allTimeouts[id]) {
             return Math.max(
@@ -248,10 +250,10 @@
         }
 
         // Update the percentage
-        const percentage = 100 - Math.min(Math.max(Math.round((theTimeout/zs_maxTimeout) * 100), 0), 100);
+        const percentage = 100 - Math.min(Math.max(Math.round((theTimeout / zs_maxTimeout) * 100), 0), 100);
         zs_startButton.style.setProperty("--zs_timeout", `${percentage}%`);
         zs_startButtonTitle.innerText = `Zinnsoldat v${zs_version}`;
-        const nextTryInSeconds = Math.floor(theTimeout/1000);
+        const nextTryInSeconds = Math.floor(theTimeout / 1000);
         if (theTimeout > 0) {
             zs_startButtonSubTitle.innerText = `Nächster Pixel: ${nextTryInSeconds}s`;
         } else {
@@ -263,8 +265,14 @@
     // Basics
     // ----------------------------------------
 
-    let zs_running = true;
+    const ZS_RUNNING_STORAGE_KEY = 'zs_running';
+    let zs_running = await GM.getValue(ZS_RUNNING_STORAGE_KEY, true);
     let zs_initialized;
+
+    const zs_setRunning = async (running) => {
+        zs_running = running;
+        await GM.setValue(ZS_RUNNING_STORAGE_KEY, running);
+    }
 
     const zs_version = "1.6";
     let zs_accessToken;
@@ -296,11 +304,11 @@
         static getCanvasX = (x, y) => {
             return Math.abs((x + 1500) % 1000);
         }
-    
+
         static getCanvasY = (x, y) => {
             return Canvas.getCanvasId(x, y) < 3 ? y + 1000 : y;
         }
-    
+
         static placePixel = async (x, y, color) => {
             console.log('Trying to place pixel at %s, %s in %s', x, y, color);
             const response = await fetch('https://gql-realtime-2.reddit.com/query', {
@@ -374,11 +382,11 @@
                 Toaster.error('Fehler beim Platzieren des Pixels');
                 return { status: 'Failure', timestamp: null, reason: '' };
             }
-            
+
             // Pixels placed counter
             let pixelsPlacedThisSession = parseInt(localStorage.getItem('pixelsPlacedThisSession') ?? '0') + 1;
             localStorage.setItem('pixelsPlacedThisSession', pixelsPlacedThisSession);
-            
+
             console.log('Did place pixel at %s, %s in %s', x, y, color);
             Toaster.place(`Pixel (${x}, ${y}) platziert! (#${pixelsPlacedThisSession})`, x, y);
 
@@ -447,7 +455,7 @@
             const url = usingOldReddit ? 'https://new.reddit.com/r/place/' : 'https://www.reddit.com/r/place/';
             const response = await fetch(url);
             const responseText = await response.text();
-        
+
             return responseText.match(/"accessToken":"(\\"|[^"]*)"/)[1];
         }
     }
@@ -461,7 +469,7 @@
             const data = await ntpResponse.json()
             const ntpDate = data['unixtime'] * 1000
 
-            if(ntpDate - Date.now() <= -60000){
+            if (ntpDate - Date.now() <= -60000) {
                 let error_message = `Deine Computerzeit weicht um >= 1 Minute von der Serverzeit ab!
                 Um die Server nicht mit Anfragen zu fluten stoppt der Zinnsoldat nun.
                 Bitte stelle sicher, dass die Zeit deines Computers richtig synchronisiert ist!
@@ -531,10 +539,10 @@
             // Execute job
             Canvas.placePixel(job.x, job.y, job.color - 1).then((placeResult) => {
                 const { status, reason, timestamp } = placeResult;
-                const nextTry = (timestamp ? timestamp - Date.now() : 5*60*1000) + 3000 + Math.floor(Math.random()*18000);
+                const nextTry = (timestamp ? timestamp - Date.now() : 5 * 60 * 1000) + 3000 + Math.floor(Math.random() * 18000);
                 // Replay acknoledgement
                 const token = CarpetBomber.getTokens()[0];
-                c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: { type: status, reason, cooldown: nextTry } }}));
+                c2.send(JSON.stringify({ type: "JobStatusReport", tokens: { [token]: { type: status, reason, cooldown: nextTry } } }));
                 // Schedule next job
                 zs_maxTimeout = nextTry;
                 clearTimeout(placeTimeout);
@@ -565,9 +573,9 @@
             c2.onopen = () => {
                 Toaster.info('Verbinde mit "Carpetbomber"...');
                 c2.send(JSON.stringify({ type: "Handshake", version: zs_version }));
-                setInterval(() => c2.send(JSON.stringify({ type: "Wakeup"})), 40*1000);
+                setInterval(() => c2.send(JSON.stringify({ type: "Wakeup" })), 40 * 1000);
             }
-            
+
             c2.onerror = (error) => {
                 Toaster.error('Verbindung zum "Carpetbomber" fehlgeschlagen!');
                 console.error(error);
@@ -615,12 +623,22 @@
     zs_startButton.appendChild(zs_startButtonSubTitle);
     document.body.appendChild(zs_startButton);
 
-    const zs_startBot = () => {
-        if (zs_initialized) {
-            zs_running = true;
+    const zs_setStartButtonState = (running) => {
+        if (running) {
             zs_startButton.classList.remove('zs-startbutton');
             zs_startButton.classList.add('zs-stopbutton');
             zs_startButtonSubTitle.innerText = 'Starten...'
+        } else {
+            zs_startButton.classList.remove('zs-stopbutton');
+            zs_startButton.classList.add('zs-startbutton');
+            zs_startButtonSubTitle.innerText = 'Deaktiviert'
+        }
+    }
+
+    const zs_startBot = () => {
+        if (zs_initialized) {
+            zs_setRunning(true);
+            zs_setStartButtonState(true);
             CarpetBomber.startRequestLoop();
         } else {
             Toaster.error('Version nicht mehr unterstützt!');
@@ -628,11 +646,9 @@
     }
 
     const zs_stopBot = () => {
-        zs_running = false;
+        zs_setRunning(false);
         clearTimeout(placeTimeout);
-        zs_startButton.classList.remove('zs-stopbutton');
-        zs_startButton.classList.add('zs-startbutton');
-        zs_startButtonSubTitle.innerText = 'Deaktiviert'
+        zs_setStartButtonState(false);
     }
 
     zs_startButton.onclick = () => {
@@ -646,11 +662,12 @@
     // ----------------------------------------
     // Run
     // ----------------------------------------
-    
+
     Toaster.info('Erbitte Reddit um Zugriff...');
     zs_accessToken = await RedditApi.getAccessToken();
     Toaster.success('Zugriff gewährt!');
 
     let isTimeSynchronized = await TimeChecker.checkTime();
-    if(isTimeSynchronized) { CarpetBomber.initCarpetbomberConnection(); }
+    if (isTimeSynchronized) { CarpetBomber.initCarpetbomberConnection(); }
+    zs_setStartButtonState(zs_running);
 })();
